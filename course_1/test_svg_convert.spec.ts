@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 
+test.describe("First step for testing svg convert", () => {});
 test("First step for testing svg convert", async ({ page }) => {
   await page.goto(process.env.TEST_BASE_URL!);
   await expect(
