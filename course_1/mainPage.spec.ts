@@ -145,6 +145,21 @@ const elements: IElements<{ type: string; value: string }>[] = [
       page.getByRole("link", { name: "76k+ stargazers on GitHub" }),
     name: "Stargazer icon",
   },
+  {
+    locator: (page) =>
+      page.getByRole("heading", { name: "Playwright enables reliable" }),
+    name: "Title",
+    text: "Playwright enables reliable end-to-end testing for modern web apps.",
+  },
+  {
+    locator: (page) => page.getByRole("link", { name: "Get started" }),
+    name: "Get started button",
+    text: "Get started",
+    attribute: {
+      type: "href",
+      value: "/docs/intro",
+    },
+  },
 ];
 test.describe("Тесты главной страницы", () => {
   // test.beforeEach — это хук, который запускается перед каждым тестом test в текущей области (describe или файл). Иначе в каждом из test пришлось бы писать page.goto()
@@ -208,25 +223,5 @@ test.describe("Тесты главной страницы", () => {
     await expect
       .soft(page.locator("html"))
       .toHaveAttribute("data-theme", "light");
-  });
-  test("Проверка заголовка страницы", async ({ page }) => {
-    await expect
-      .soft(page.getByRole("heading", { name: "Playwright enables reliable" }))
-      .toBeVisible(); // проверка на данный элемент отображается на странице
-    await expect
-      .soft(page.getByRole("heading", { name: "Playwright enables reliable" }))
-      .toContainText(
-        "Playwright enables reliable end-to-end testing for modern web apps."
-      ); // проверка наличии необходимого текста на этом элементе
-    await page.getByRole("link", { name: "Get started" }).click();
-  });
-  test("Проверка кнопки Get started", async ({ page }) => {
-    await expect
-      .soft(page.getByRole("link", { name: "Get started" }))
-      .toBeVisible();
-    await expect.soft(page.getByRole("banner")).toContainText("Get started");
-    await expect
-      .soft(page.getByRole("link", { name: "Get started" }))
-      .toHaveAttribute("href", "/docs/intro");
   });
 });
