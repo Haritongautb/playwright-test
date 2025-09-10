@@ -161,6 +161,8 @@ const elements: IElements<{ type: string; value: string }>[] = [
     },
   },
 ];
+
+const lightMods = ["light", "dark"];
 test.describe("Тесты главной страницы", () => {
   // test.beforeEach — это хук, который запускается перед каждым тестом test в текущей области (describe или файл). Иначе в каждом из test пришлось бы писать page.goto()
   test.beforeEach(async ({ page }) => {
@@ -223,5 +225,31 @@ test.describe("Тесты главной страницы", () => {
     await expect
       .soft(page.locator("html"))
       .toHaveAttribute("data-theme", "light");
+  });
+  lightMods.forEach((value) => {
+    test(`Проверка стилей активного ${value} мода`, async ({ page }) => {
+      /* 
+			1. Что такое page.evaluate
+			page.evaluate(pageFunction, arg) запускает переданную функцию внутри браузера, в контексте страницы.
+			Внутри evaluate у вас есть обычный доступ к DOM и веб-API (как в консоли DevTools), но нет Playwright-API.
+			 - Первый параметр — функция, которая будет выполнена в браузере.
+			 - Второй параметр — аргументы, которые Playwright сериализует и передаст в эту функцию (value у вас).
+			Пример:
+			await page.evaluate((theme) => {
+				document.documentElement.setAttribute('data-theme', theme);
+			}, 'dark');
+			2. Почему «обычный JS», а не Playwright?
+			Потому что менять произвольные атрибуты DOM — это логика страницы. Playwright умеет кликать, печатать, ждать и т.д., но для прямых манипуляций DOM он даёт мост evaluate (или locator.evaluate). Это нормальная практика, когда нужно быстро зафиксировать состояние UI (например, тему) без клика по тумблеру.
+			*/
+      // или так Locator.evaluate() - не перепутай
+      await page.locator("html").evaluate((el, colorMode) => {
+        el.setAttribute("data-theme", colorMode);
+      }, value);
+      // или так Page.evaluate() - не перепутай
+      // await page.evaluate((value) => {
+      //   document.querySelector("html")?.setAttribute("data-theme", value);
+      // }, value);
+      await expect(page).toHaveScreenshot(`pageWidth${value}Mode.png`);
+    });
   });
 });
