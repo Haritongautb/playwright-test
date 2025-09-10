@@ -1,4 +1,7 @@
-import { test, expect, Page, Locator } from "@playwright/test";
+import { test } from "@playwright/test";
+import { MainPage } from "../models/MainPage";
+import { elements } from "../../utils/data";
+import { LightModeEnum } from "../../types/types";
 // I.
 /* 
 	1. Что такое name а getByRole("", {name: ""})
@@ -56,117 +59,12 @@ test.describe(...) в Playwright — это группа (сьют) тестов
 
 	4. test.only() - Запускает в группе вуыскшиу только этот тест, других игнорит. Запускает один конкретный тест. Можно ставить сколько угодно only и тестирование будет только с этими only
 */
-interface IElements<A> {
-  locator: (page: Page) => Locator;
-  name: string;
-  text?: string;
-  attribute?: A;
-}
-const elements: IElements<{ type: string; value: string }>[] = [
-  {
-    locator: (page) =>
-      page.getByRole("link", { name: "Playwright logo Playwright" }),
-    name: "Playwright logo link",
-    text: "Playwright",
-    attribute: {
-      type: "href",
-      value: "/",
-    },
-  },
-  {
-    locator: (page) => page.getByRole("link", { name: "Docs" }),
-    name: "Docs link",
-    text: "Docs",
-    attribute: {
-      type: "href",
-      value: "/docs/intro",
-    },
-  },
-  {
-    locator: (page) => page.getByRole("link", { name: "API" }),
-    name: "Api link",
-    text: "API",
-    attribute: {
-      type: "href",
-      value: "/docs/api/class-playwright",
-    },
-  },
-
-  {
-    locator: (page) => page.getByRole("link", { name: "Community" }),
-    name: "Community link",
-    text: "Community",
-    attribute: {
-      type: "href",
-      value: "/community/welcome",
-    },
-  },
-  {
-    locator: (page) => page.getByRole("link", { name: "GitHub repository" }),
-    name: "Github link",
-    attribute: {
-      type: "href",
-      value: "https://github.com/microsoft/playwright",
-    },
-  },
-  {
-    locator: (page) => page.getByRole("link", { name: "Discord server" }),
-    name: "Discord icon",
-    attribute: {
-      type: "href",
-      value: "https://aka.ms/playwright/discord",
-    },
-  },
-  {
-    locator: (page) =>
-      page.getByRole("button", { name: "Switch between dark and light" }),
-    name: "Dark mode icon",
-  },
-  {
-    locator: (page) => page.getByRole("button", { name: "Search (Ctrl+K)" }),
-    name: "Search input",
-  },
-  {
-    locator: (page) =>
-      page.getByRole("heading", { name: "Playwright enables reliable" }),
-    name: "Main header",
-  },
-  {
-    locator: (page) => page.getByRole("link", { name: "Get started" }),
-    name: "Get started button",
-  },
-  {
-    locator: (page) =>
-      page.getByRole("link", { name: "Star microsoft/playwright on" }),
-    name: "Star icon",
-  },
-  {
-    locator: (page) =>
-      page.getByRole("link", { name: "76k+ stargazers on GitHub" }),
-    name: "Stargazer icon",
-  },
-  {
-    locator: (page) =>
-      page.getByRole("heading", { name: "Playwright enables reliable" }),
-    name: "Title",
-    text: "Playwright enables reliable end-to-end testing for modern web apps.",
-  },
-  {
-    locator: (page) => page.getByRole("link", { name: "Get started" }),
-    name: "Get started button",
-    text: "Get started",
-    attribute: {
-      type: "href",
-      value: "/docs/intro",
-    },
-  },
-];
-
-const lightMods = ["light", "dark"];
+let mainPage: MainPage;
 test.describe("Тесты главной страницы", () => {
   // test.beforeEach — это хук, который запускается перед каждым тестом test в текущей области (describe или файл). Иначе в каждом из test пришлось бы писать page.goto()
   test.beforeEach(async ({ page }) => {
-    await page.goto("https://playwright.dev/");
+    mainPage = new MainPage(page, elements);
+    await mainPage.openMainPage();
   });
   test("Проверка отображения элементов навигации", async ({ page }) => {
     // await page.goto("https://playwright.dev/");
@@ -180,55 +78,40 @@ test.describe("Тесты главной страницы", () => {
 		- Если внутри случится ошибка/жёсткий expect — упадёт шаг и весь тест.
 		- Можно вкладывать шаги и возвращать значение из шага.
 		*/
-    elements.forEach(({ locator, name }) => {
+    /*     
+		elements.forEach(({ locator, name }) => {
       test.step(`Проверка отображения элементов навигации хедера ${name}`, async () => {
         await expect.soft(locator(page)).toBeVisible();
       });
-    });
+    }); 
+		*/
+    await mainPage.checkElementsVisibility();
   });
 
   test("Проверка названия элементов навигации header", async ({ page }) => {
-    elements.forEach(({ locator, name, text }) => {
-      if (text) {
-        test.step(`Проверка названия элемента ${name}`, async () =>
-          await expect.soft(locator(page)).toContainText(text));
-      }
-    });
-    await expect(
-      page.getByRole("link", { name: "Playwright logo Playwright" })
-    ).toContainText("Playwright");
+    await mainPage.checkElementsText();
   });
 
   test("Проверка атрибутов href элементов навигации header", async ({
     page,
   }) => {
-    elements.forEach(({ locator, name, attribute }) => {
-      if (attribute) {
-        test.step(`Проверка аттрибутов href элемента ${name}`, async () => {
-          await expect
-            .soft(locator(page))
-            .toHaveAttribute(attribute.type, attribute.value);
-        });
-      }
-    });
+    await mainPage.checkElementsHrefAttribute();
   });
 
   test("Проверка переключения light mode", async ({ page }) => {
     // или так
-    await page
-      .getByRole("button", { name: "Switch between dark and light" })
-      .click({ clickCount: 3 });
+    await mainPage.clickSwitchLightModeIcon();
     // или так
     // await page
     //   .getByRole("button", { name: "Switch between dark and light" })
     //   .dblclick();
-    await expect
-      .soft(page.locator("html"))
-      .toHaveAttribute("data-theme", "light");
+    await mainPage.checkDataThemeAttributeValue();
   });
-  lightMods.forEach((value) => {
-    test(`Проверка стилей активного ${value} мода`, async ({ page }) => {
-      /* 
+
+  test(`Проверка стилей светлой темой`, async ({ page }) => {
+    await mainPage.setLightMode(LightModeEnum.LIGHT);
+    await mainPage.checkLayoutWidthLightMode(LightModeEnum.LIGHT);
+    /* 
 			1. Что такое page.evaluate
 			page.evaluate(pageFunction, arg) запускает переданную функцию внутри браузера, в контексте страницы.
 			Внутри evaluate у вас есть обычный доступ к DOM и веб-API (как в консоли DevTools), но нет Playwright-API.
@@ -241,15 +124,21 @@ test.describe("Тесты главной страницы", () => {
 			2. Почему «обычный JS», а не Playwright?
 			Потому что менять произвольные атрибуты DOM — это логика страницы. Playwright умеет кликать, печатать, ждать и т.д., но для прямых манипуляций DOM он даёт мост evaluate (или locator.evaluate). Это нормальная практика, когда нужно быстро зафиксировать состояние UI (например, тему) без клика по тумблеру.
 			*/
-      // или так Locator.evaluate() - не перепутай
-      await page.locator("html").evaluate((el, colorMode) => {
+    // или так Locator.evaluate() - не перепутай
+    // Меняем свет для страницы
+    /*       await page.locator("html").evaluate((el, colorMode) => {
         el.setAttribute("data-theme", colorMode);
-      }, value);
-      // или так Page.evaluate() - не перепутай
-      // await page.evaluate((value) => {
-      //   document.querySelector("html")?.setAttribute("data-theme", value);
-      // }, value);
-      await expect(page).toHaveScreenshot(`pageWidth${value}Mode.png`);
-    });
+      }, value); */
+    // или так Page.evaluate() - не перепутай
+    // await page.evaluate((value) => {
+    //   document.querySelector("html")?.setAttribute("data-theme", value);
+    // }, value);
+    // тут делается скрин и сранивает новго скрина и находит в скринах фотки pageWidth${value}Mode.png и сранивает с новым
+    /*       await expect(page).toHaveScreenshot(`pageWidth${value}Mode.png`); */
+  });
+
+  test(`Проверка стилей c темной темой`, async ({ page }) => {
+    await mainPage.setLightMode(LightModeEnum.DARK);
+    await mainPage.checkLayoutWidthLightMode(LightModeEnum.DARK);
   });
 });
