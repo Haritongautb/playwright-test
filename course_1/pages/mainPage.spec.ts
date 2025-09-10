@@ -1,4 +1,4 @@
-import { test } from "@playwright/test";
+import { test, expect } from "../fixtures/mainPage";
 import { MainPage } from "../models/MainPage";
 import { elements } from "../../utils/data";
 import { LightModeEnum } from "../../types/types";
@@ -59,14 +59,14 @@ test.describe(...) в Playwright — это группа (сьют) тестов
 
 	4. test.only() - Запускает в группе вуыскшиу только этот тест, других игнорит. Запускает один конкретный тест. Можно ставить сколько угодно only и тестирование будет только с этими only
 */
-let mainPage: MainPage;
+// let mainPage: MainPage;
 test.describe("Тесты главной страницы", () => {
   // test.beforeEach — это хук, который запускается перед каждым тестом test в текущей области (describe или файл). Иначе в каждом из test пришлось бы писать page.goto()
-  test.beforeEach(async ({ page }) => {
+  /*   test.beforeEach(async ({ page }) => {
     mainPage = new MainPage(page, elements);
     await mainPage.openMainPage();
-  });
-  test("Проверка отображения элементов навигации", async ({ page }) => {
+  }); */
+  test("Проверка отображения элементов навигации", async ({ mainPage }) => {
     // await page.goto("https://playwright.dev/");
     /* 
 		test.step сам по себе ни на что не влияет — это чисто обёртка для репорта/трейса с названием шага. Остановится ли тест — зависит не от step, а от того, что происходит внутри шага.
@@ -88,29 +88,44 @@ test.describe("Тесты главной страницы", () => {
     await mainPage.checkElementsVisibility();
   });
 
-  test("Проверка названия элементов навигации header", async ({ page }) => {
+  test("Проверка названия элементов навигации header", async ({ mainPage }) => {
     await mainPage.checkElementsText();
   });
 
   test("Проверка атрибутов href элементов навигации header", async ({
-    page,
+    mainPage,
   }) => {
     await mainPage.checkElementsHrefAttribute();
   });
 
-  test("Проверка переключения light mode", async ({ page }) => {
+  test("Проверка переключения light mode", async ({ mainPage }) => {
     // или так
-    await mainPage.clickSwitchLightModeIcon();
+    test.step("Нажатие на иконку переключение лайт мода", async () => {
+      await mainPage.clickSwitchLightModeIcon();
+    });
     // или так
     // await page
     //   .getByRole("button", { name: "Switch between dark and light" })
     //   .dblclick();
-    await mainPage.checkDataThemeAttributeValue();
+    test.step("Проверка смены значения атрибута", async () => {
+      await mainPage.checkDataThemeAttributeValue();
+    });
   });
 
-  test(`Проверка стилей светлой темой`, async ({ page }) => {
-    await mainPage.setLightMode(LightModeEnum.LIGHT);
-    await mainPage.checkLayoutWidthLightMode(LightModeEnum.LIGHT);
+  test(`Проверка темной и светлой темы`, async ({ mainPage }) => {
+    await test.step("Установка светлой темы", async () => {
+      await mainPage.setLightMode(LightModeEnum.LIGHT);
+    });
+    await test.step("Скриншотная проверка с активной светлой темой", async () => {
+      await mainPage.checkLayoutWidthLightMode(LightModeEnum.LIGHT);
+    });
+    await test.step("Проверка стилей c темной темой", async () => {
+      await mainPage.setLightMode(LightModeEnum.DARK);
+    });
+
+    await test.step("Проверка стилей c темной темой", async () => {
+      await mainPage.checkLayoutWidthLightMode(LightModeEnum.DARK);
+    });
     /* 
 			1. Что такое page.evaluate
 			page.evaluate(pageFunction, arg) запускает переданную функцию внутри браузера, в контексте страницы.
@@ -135,10 +150,5 @@ test.describe("Тесты главной страницы", () => {
     // }, value);
     // тут делается скрин и сранивает новго скрина и находит в скринах фотки pageWidth${value}Mode.png и сранивает с новым
     /*       await expect(page).toHaveScreenshot(`pageWidth${value}Mode.png`); */
-  });
-
-  test(`Проверка стилей c темной темой`, async ({ page }) => {
-    await mainPage.setLightMode(LightModeEnum.DARK);
-    await mainPage.checkLayoutWidthLightMode(LightModeEnum.DARK);
   });
 });

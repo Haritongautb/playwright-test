@@ -19,7 +19,7 @@ export class MainPage {
 
   async checkElementsVisibility() {
     for (const { locator, name } of this.elements) {
-      test.step(`Проверка отображения элементов навигации хедера ${name}`, async () => {
+      await test.step(`Проверка отображения элементов навигации хедера ${name}`, async () => {
         await expect.soft(locator(this.page)).toBeVisible();
       });
     }
@@ -28,7 +28,7 @@ export class MainPage {
   async checkElementsText() {
     for (const { locator, name, text } of this.elements) {
       if (text) {
-        test.step(`Проверка названия элемента ${name}`, async () =>
+        await test.step(`Проверка названия элемента ${name}`, async () =>
           await expect.soft(locator(this.page)).toContainText(text));
       }
     }
@@ -37,7 +37,7 @@ export class MainPage {
   async checkElementsHrefAttribute() {
     for (const { locator, name, attribute } of this.elements) {
       if (attribute) {
-        test.step(`Проверка аттрибутов href элемента ${name}`, async () => {
+        await test.step(`Проверка аттрибутов href элемента ${name}`, async () => {
           await expect
             .soft(locator(this.page))
             .toHaveAttribute(attribute.type, attribute.value);
